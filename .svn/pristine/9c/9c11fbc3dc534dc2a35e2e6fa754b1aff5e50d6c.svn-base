@@ -1,0 +1,3 @@
+export const GET_USERINFO = 'GET_USERINFO'
+export const GET_USER_PERM_STR_LIST = 'GET_USER_PERM_STR_LIST'
+export const GET_ROUTE_NAME = 'GET_ROUTE_NAME'

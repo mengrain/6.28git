@@ -1,0 +1,67 @@
+import Vue from 'vue';
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+import './assets/styles/font-awesome.min.css'
+import 'normalize.css/normalize.css';
+import './styles/index.scss';
+import App from './App.vue';
+import Router from 'vue-router';
+import routes from './routerConfig';
+import store from './store/'
+import echarts from 'echarts'
+
+
+// import {axiosex as axios} from './utils/axios-ex'
+import axios from 'axios'
+
+Vue.prototype.$axios = axios;
+Vue.use(ElementUI);
+Vue.use(Router);
+Vue.prototype.$echarts = echarts 
+
+Vue.config.productionTip = false;
+
+const router = new Router({
+  mode: 'hash',
+  routes
+});
+
+axios.interceptors.request.use(config => {    // 这里的config包含每次请求的内容
+  // 判断localStorage中是否存在api_token
+  const token = localStorage.getItem('token');
+  if (token) {
+    //  存在将api_token写入 request header
+    config.headers.Authorization = 'Bearer ' + token;
+  }
+  return config;
+}, err => {
+  return Promise.reject(err);
+});
+
+// http response 服务器响应拦截器，这里拦截401错误，并重新跳入登页重新获取token
+axios.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          // 这里写清除token的代码
+          localStorage.removeItem('token');
+          router.replace({
+            path: '/login',
+            query: {redirect: router.currentRoute.fullPath}//登录成功后跳入浏览的当前页面
+          })
+          break;
+        // case 500:
+
+      }
+    }
+    return Promise.reject(error.response.data)
+  });
+new Vue({
+  router,
+  store,
+  render: h => h(App),
+}).$mount('#app');
